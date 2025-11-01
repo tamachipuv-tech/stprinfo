@@ -1,49 +1,131 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><meta charset="UTF-8"><title>管理ページ</title>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ライブ情報管理</title>
 <style>
-body{font-family:sans-serif;padding:20px;}
-input,button{margin:5px;}
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+    background: #f9f9f9;
+    color: #222;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .card input {
+    width: 100%;
+    padding: 6px;
+    margin: 5px 0;
+    box-sizing: border-box;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+  }
 </style>
 </head>
 <body>
-<h1>ライブ情報管理</h1>
-<p>パスワードを入力してください。</p>
-<input type="password" id="pw" placeholder="パスワード"><button onclick="checkPw()">ログイン</button>
-<div id="adminArea" style="display:none;"></div>
+
+<h1>ライブ情報管理ページ</h1>
+
+<div id="liveContainer">読み込み中...</div>
+
+<hr>
+<h2>新しいライブを追加</h2>
+<div class="card">
+  <input type="text" id="newTitle" placeholder="ライブ名">
+  <input type="text" id="newArtist" placeholder="アーティスト名">
+  <input type="text" id="newDate" placeholder="日時">
+  <input type="text" id="newURL" placeholder="画像URLまたはリンク">
+  <button id="addBtn">追加</button>
+</div>
+
 <script>
-const password='stprinfo-admin-j5a';
-function checkPw(){
-const val=document.getElementById('pw').value;
-if(val===password){
-document.getElementById('adminArea').style.display='block';
-loadAdmin();
-} else alert('パスワード違います');
+const GAS_URL = "LIVE_GAS_WEB_APP_URL"; // デプロイ済みGASのURL
+
+async function fetchLiveData() {
+  try {
+    const res = await fetch(`${GAS_URL}?action=get`);
+    const data = await res.json();
+    const container = document.getElementById('liveContainer');
+    container.innerHTML = '';
+    if (!data.length) {
+      container.innerHTML = '<p>ライブ情報はまだありません。</p>';
+      return;
+    }
+    data.forEach((live, idx) => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <input type="text" value="${live.title}" data-id="${live.id}" class="title">
+        <input type="text" value="${live.place}" data-id="${live.id}" class="artist">
+        <input type="text" value="${live.date}" data-id="${live.id}" class="date">
+        <input type="text" value="${live.url}" data-id="${live.id}" class="url">
+        <button onclick="updateLive(${live.id})">更新</button>
+        <button onclick="deleteLive(${live.id})" style="background:red;">削除</button>
+      `;
+      container.appendChild(div);
+    });
+  } catch(err) {
+    console.error(err);
+    document.getElementById('liveContainer').innerText = "ライブ情報の取得に失敗しました";
+  }
 }
-async function loadAdmin(){
-document.getElementById('adminArea').innerHTML='<p>ライブ情報読み込み中...</p>';
-const res=await fetch('LIVE_GAS_WEB_APP_URL?action=get');
-const data=await res.json();
-const html='';
-let table='<table border=1><tr><th>ID</th><th>日付</th><th>タイトル</th><th>場所</th><th>URL</th><th>操作</th></tr>';
-data.forEach(d=>{
-table+=`<tr><td>${d.id}</td><td><input value='${d.date}' id='date${d.id}'></td><td><input value='${d.title}' id='title${d.id}'></td><td><input value='${d.place}' id='place${d.id}'></td><td><input value='${d.url}' id='url${d.id}'></td><td><button onclick='updateLive(${d.id})'>更新</button> <button onclick='removeLive(${d.id})'>削除</button></td></tr>`;
+
+// 追加
+document.getElementById('addBtn').addEventListener('click', async () => {
+  const title = document.getElementById('newTitle').value.trim();
+  const artist = document.getElementById('newArtist').value.trim();
+  const date = document.getElementById('newDate').value.trim();
+  const url = document.getElementById('newURL').value.trim();
+  if(!title || !artist) {
+    alert("ライブ名とアーティスト名は必須です。");
+    return;
+  }
+  await fetch(`${GAS_URL}?action=add&title=${encodeURIComponent(title)}&place=${encodeURIComponent(artist)}&date=${encodeURIComponent(date)}&url=${encodeURIComponent(url)}`);
+  fetchLiveData();
+  document.getElementById('newTitle').value = '';
+  document.getElementById('newArtist').value = '';
+  document.getElementById('newDate').value = '';
+  document.getElementById('newURL').value = '';
 });
-table+='</table>';
-table+='<h3>新規追加</h3>日付:<input id=newDate>タイトル:<input id=newTitle>場所:<input id=newPlace>URL:<input id=newUrl> <button onclick=addLive()>追加</button>';
-document.getElementById('adminArea').innerHTML=table;
+
+// 更新
+async function updateLive(id) {
+  const title = document.querySelector(`.title[data-id='${id}']`).value.trim();
+  const artist = document.querySelector(`.artist[data-id='${id}']`).value.trim();
+  const date = document.querySelector(`.date[data-id='${id}']`).value.trim();
+  const url = document.querySelector(`.url[data-id='${id}']`).value.trim();
+  await fetch(`${GAS_URL}?action=update&id=${id}&title=${encodeURIComponent(title)}&place=${encodeURIComponent(artist)}&date=${encodeURIComponent(date)}&url=${encodeURIComponent(url)}`);
+  fetchLiveData();
 }
-function addLive(){
-const entry={date:document.getElementById('newDate').value,title:document.getElementById('newTitle').value,place:document.getElementById('newPlace').value,url:document.getElementById('newUrl').value};
-fetch('LIVE_GAS_WEB_APP_URL?action=add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}).then(()=>loadAdmin());
+
+// 削除
+async function deleteLive(id) {
+  if(confirm("本当に削除しますか？")) {
+    await fetch(`${GAS_URL}?action=delete&id=${id}`);
+    fetchLiveData();
+  }
 }
-function updateLive(id){
-const entry={id:id,date:document.getElementById('date'+id).value,title:document.getElementById('title'+id).value,place:document.getElementById('place'+id).value,url:document.getElementById('url'+id).value};
-fetch('LIVE_GAS_WEB_APP_URL?action=update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}).then(()=>loadAdmin());
-}
-function removeLive(id){
-fetch('LIVE_GAS_WEB_APP_URL?action=remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}).then(()=>loadAdmin());
-}
+
+// 初回読み込み
+fetchLiveData();
 </script>
+
 </body>
 </html>
