@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ライブ情報</title>
+<style>
+body{font-family:sans-serif;padding:20px;}
+.card{border:1px solid #ccc;padding:15px;margin-bottom:15px;border-radius:10px;}
+img{max-width:100%;border-radius:10px;}
+</style>
+</head>
+<body>
+<h1>ライブ情報</h1>
+<div id="liveContainer">読み込み中...</div>
+<script>
+async function fetchLiveData(){
+const res = await fetch('LIVE_GAS_WEB_APP_URL?action=get'); // ← GAS公開URLに置き換える
+const data = await res.json();
+const container = document.getElementById('liveContainer');
+container.innerHTML = '';
+data.forEach(l => {
+const div = document.createElement('div');
+div.className='card';
+div.innerHTML=`
+<img src="${l.url}" alt="${l.title}">
+<h2>${l.title}</h2>
+<p>アーティスト: ${l.place}</p>
+<p>日時: ${l.date}</p>
+<p>${l.title}</p>
+`;
+container.appendChild(div);
+});
+}
+fetchLiveData();
+</script>
+</body>
+</html>
