@@ -2,26 +2,91 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>お知らせ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お知らせ一覧</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f1e1dd;
+    color: #333;
+  }
+  h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .notice {
+    background: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .title {
+    font-weight: bold;
+    color: #111;
+  }
+  .date {
+    font-size: 0.85em;
+    color: #666;
+  }
+  .content {
+    margin: 5px 0;
+  }
+  .memo {
+    font-size: 0.8em;
+    color: #999;
+  }
+</style>
 </head>
 <body>
-<h1>お知らせ</h1>
-<!-- htmlA埋め込み -->
-<div id="noticeArea"></div>
+
+<h1>お知らせ一覧</h1>
+<div id="noticeContainer">読み込み中...</div>
+
 <script>
+// スプレッドシート公開CSV URL
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQN7Kij705mgcUhk_HRxpzpsja8TvA2DLRQSJpKukbBX0poCl9Dju8TNHrHNRtTUPOCFw9YtlhjhMTX/pub?gid=0&single=true&output=csv";
-async function fetchNotices(){
-const res = await fetch(CSV_URL);
-const text = await res.text();
-const lines = text.split('\n');
-const container = document.getElementById('noticeArea');
-container.innerHTML='';
-lines.slice(1).reverse().forEach(l => {
-const [date,title,content,memo] = l.split(',');
-container.innerHTML+=`<div><strong>${title}</strong><br>${date}<p>${content}</p><small>${memo}</small></div>`;
-});
+
+// CSVを取得してお知らせを表示
+async function fetchNotices() {
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    const lines = text.split("\n").filter(line => line.trim() !== "");
+    const container = document.getElementById('noticeContainer');
+    container.innerHTML = '';
+
+    if (lines.length <= 1) {
+      container.innerHTML = '<p>お知らせはまだありません。</p>';
+      return;
+    }
+
+    lines.slice(1).reverse().forEach(line => {
+      const [date, title, content, memo] = line.split(",");
+      const div = document.createElement('div');
+      div.className = 'notice';
+      div.innerHTML = `
+        <div class="title">${title}</div>
+        <div class="date">${date}</div>
+        <div class="content">${content}</div>
+        <div class="memo">${memo}</div>
+      `;
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    document.getElementById('noticeContainer').innerText = "お知らせの読み込みに失敗しました";
+    console.error(err);
+  }
 }
+
+// 初回取得
 fetchNotices();
+// 10秒ごとに自動更新
+setInterval(fetchNotices, 10000);
 </script>
+
 </body>
 </html>
