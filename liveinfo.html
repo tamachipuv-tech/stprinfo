@@ -5,34 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ライブ情報</title>
 <style>
-body{font-family:sans-serif;padding:20px;}
-.card{border:1px solid #ccc;padding:15px;margin-bottom:15px;border-radius:10px;}
-img{max-width:100%;border-radius:10px;}
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+    background: #f9f9f9;
+    color: #222;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .card {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .card img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .card h2 {
+    margin: 5px 0;
+    color: #333;
+  }
+  .card p {
+    margin: 5px 0;
+  }
 </style>
 </head>
 <body>
+
 <h1>ライブ情報</h1>
 <div id="liveContainer">読み込み中...</div>
+
 <script>
-async function fetchLiveData(){
-const res = await fetch('LIVE_GAS_WEB_APP_URL?action=get'); // ← GAS公開URLに置き換える
-const data = await res.json();
-const container = document.getElementById('liveContainer');
-container.innerHTML = '';
-data.forEach(l => {
-const div = document.createElement('div');
-div.className='card';
-div.innerHTML=`
-<img src="${l.url}" alt="${l.title}">
-<h2>${l.title}</h2>
-<p>アーティスト: ${l.place}</p>
-<p>日時: ${l.date}</p>
-<p>${l.title}</p>
-`;
-container.appendChild(div);
-});
+// GAS Web App URL（実際にデプロイしたURLに置き換える）
+const GAS_URL = "LIVE_GAS_WEB_APP_URL?action=get";
+
+// ライブ情報取得
+async function fetchLiveData() {
+  try {
+    const res = await fetch(GAS_URL);
+    const data = await res.json();
+    const container = document.getElementById('liveContainer');
+    container.innerHTML = '';
+
+    if (data.length === 0) {
+      container.innerHTML = '<p>現在、ライブ情報はありません。</p>';
+      return;
+    }
+
+    data.forEach(l => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <img src="${l.url}" alt="${l.title}">
+        <h2>${l.title}</h2>
+        <p>アーティスト: ${l.place}</p>
+        <p>日時: ${l.date}</p>
+        <p>詳細URL: <a href="${l.url}" target="_blank">リンク</a></p>
+      `;
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    document.getElementById('liveContainer').innerText = "ライブ情報の取得に失敗しました";
+    console.error(err);
+  }
 }
+
+// 初回取得
 fetchLiveData();
+// 10秒ごとに自動更新
+setInterval(fetchLiveData, 10000);
 </script>
+
 </body>
 </html>
