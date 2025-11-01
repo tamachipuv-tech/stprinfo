@@ -3,88 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discord コメント</title>
-<style>
-  body {
-    font-family: sans-serif;
-    background: #f5f5f5;
-    padding: 20px;
-  }
-  form {
-    max-width: 500px;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background: #fff;
-  }
-  input, textarea, button {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-  }
-  button {
-    background: #5865F2;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  #result {
-    margin-top: 10px;
-    font-weight: bold;
-    text-align: center;
-  }
-</style>
+<title>管理者募集フォーム</title>
 </head>
 <body>
 
-<div>
-  <h3>💬 コメントを送る</h3>
-  <form id="commentForm">
-    <input type="text" id="name" placeholder="お名前（任意）">
-    <textarea id="comment" rows="4" placeholder="コメントを入力"></textarea>
-    <button type="submit">送信</button>
+<div style="max-width:600px;margin:auto;background:white;padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.05);font-family:sans-serif;">
+  <h2 style="text-align:center;margin-bottom:20px;">スタッフ募集フォーム</h2>
+  <form id="applyForm">
+    
+    <label style="font-weight:bold;">希望職種（複数選択可）</label><br>
+    <label style="display:block;margin-left:8px;"><input type="checkbox" name="jobs" value="切り抜き"> 切り抜き</label>
+    <label style="display:block;margin-left:8px;"><input type="checkbox" name="jobs" value="サイト更新作業"> サイト更新作業</label>
+    <label style="display:block;margin-left:8px;"><input type="checkbox" name="jobs" value="Discordモデレーター"> Discordモデレーター</label>
+    <label style="display:block;margin-left:8px;"><input type="checkbox" name="jobs" value="dev"> デベロッパー(システム開発などを行っていただきます。)</label>
+    <br>
+
+    <label style="font-weight:bold;">メールアドレス</label><br>
+    <input id="email" type="email" required placeholder="you@example.com"
+      style="width:100%;padding:8px;margin-top:4px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;"><br>
+
+    <label style="font-weight:bold;">Discordの名前</label><br>
+    <input id="discord" type="text" required placeholder="例: tamachi#1234"
+      style="width:100%;padding:8px;margin-top:4px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;"><br>
+
+    <label style="font-weight:bold;">志望動機・自己PR</label><br>
+    <textarea id="motivation" placeholder="例: チームに貢献したいと思っています..." 
+      style="width:100%;padding:8px;margin-top:4px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;min-height:100px;"></textarea><br>
+
+    <button type="submit"
+      style="background:#2563eb;color:white;border:none;border-radius:6px;padding:10px 16px;cursor:pointer;">
+      送信
+    </button>
   </form>
-  <p id="result"></p>
 </div>
 
 <script>
-document.getElementById("commentForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+  // 👇あなたのWebhook URLをここに貼る
+  const WEBHOOK_URL = "https://discord.com/api/webhooks/1432624409092292629/7o5a2eW-n0xhe6S3ow9w7gPvZ6gCHygi1HlFfPMxNyO58CQNRCV__On0G70Cl9UU3z7F";
 
-  const webhookURL = "https://discord.com/api/webhooks/1432625981679468595/o8fg_ff4fKGDk2lnduR-gKfyR0-UglZlRWVXE0tw35NwztKBiP2NmF5HTA3gFxxSNW20"; // Discord Webhook URL
-  const name = document.getElementById("name").value || "匿名";
-  const comment = document.getElementById("comment").value;
+  const form = document.getElementById('applyForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  if (!comment.trim()) {
-    document.getElementById("result").innerText = "コメントを入力してください。";
-    return;
-  }
+    const jobs = Array.from(document.querySelectorAll('input[name="jobs"]:checked')).map(el => el.value);
+    const email = document.getElementById('email').value.trim();
+    const discord = document.getElementById('discord').value.trim();
+    const motivation = document.getElementById('motivation').value.trim();
 
-  const payload = {
-    content: `🗨️ **${name}さんのコメント:**\n${comment}`
-  };
-
-  fetch(webhookURL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(res => {
-    if (res.ok) {
-      document.getElementById("result").innerText = "コメントを送信しました！✨";
-      document.getElementById("comment").value = "";
-    } else {
-      document.getElementById("result").innerText = "送信に失敗しました。";
+    if (!email || !discord) {
+      alert("メールアドレスとDiscord名を入力してください。");
+      return;
     }
-  })
-  .catch(() => {
-    document.getElementById("result").innerText = "通信エラーが発生しました。";
+
+    const content =
+`📋 **新しい応募が届きました！**
+💼 希望職種: ${jobs.length ? jobs.join(', ') : '未選択'}
+📧 メール: ${email}
+💬 Discord: ${discord}
+
+📝 志望動機・自己PR:
+${motivation || '（未記入）'}`;
+
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content })
+      });
+      alert("Discordに送信しました！");
+      form.reset();
+    } catch (err) {
+      alert("送信中にエラーが発生しました。");
+      console.error(err);
+    }
   });
-});
 </script>
 
 </body>
