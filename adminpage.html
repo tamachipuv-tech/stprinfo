@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>管理ページ</title>
+<style>
+body{font-family:sans-serif;padding:20px;}
+input,button{margin:5px;}
+</style>
+</head>
+<body>
+<h1>ライブ情報管理</h1>
+<p>パスワードを入力してください。</p>
+<input type="password" id="pw" placeholder="パスワード"><button onclick="checkPw()">ログイン</button>
+<div id="adminArea" style="display:none;"></div>
+<script>
+const password='stprinfo-admin-j5a';
+function checkPw(){
+const val=document.getElementById('pw').value;
+if(val===password){
+document.getElementById('adminArea').style.display='block';
+loadAdmin();
+} else alert('パスワード違います');
+}
+async function loadAdmin(){
+document.getElementById('adminArea').innerHTML='<p>ライブ情報読み込み中...</p>';
+const res=await fetch('LIVE_GAS_WEB_APP_URL?action=get');
+const data=await res.json();
+const html='';
+let table='<table border=1><tr><th>ID</th><th>日付</th><th>タイトル</th><th>場所</th><th>URL</th><th>操作</th></tr>';
+data.forEach(d=>{
+table+=`<tr><td>${d.id}</td><td><input value='${d.date}' id='date${d.id}'></td><td><input value='${d.title}' id='title${d.id}'></td><td><input value='${d.place}' id='place${d.id}'></td><td><input value='${d.url}' id='url${d.id}'></td><td><button onclick='updateLive(${d.id})'>更新</button> <button onclick='removeLive(${d.id})'>削除</button></td></tr>`;
+});
+table+='</table>';
+table+='<h3>新規追加</h3>日付:<input id=newDate>タイトル:<input id=newTitle>場所:<input id=newPlace>URL:<input id=newUrl> <button onclick=addLive()>追加</button>';
+document.getElementById('adminArea').innerHTML=table;
+}
+function addLive(){
+const entry={date:document.getElementById('newDate').value,title:document.getElementById('newTitle').value,place:document.getElementById('newPlace').value,url:document.getElementById('newUrl').value};
+fetch('LIVE_GAS_WEB_APP_URL?action=add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}).then(()=>loadAdmin());
+}
+function updateLive(id){
+const entry={id:id,date:document.getElementById('date'+id).value,title:document.getElementById('title'+id).value,place:document.getElementById('place'+id).value,url:document.getElementById('url'+id).value};
+fetch('LIVE_GAS_WEB_APP_URL?action=update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}).then(()=>loadAdmin());
+}
+function removeLive(id){
+fetch('LIVE_GAS_WEB_APP_URL?action=remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}).then(()=>loadAdmin());
+}
+</script>
+</body>
+</html>
