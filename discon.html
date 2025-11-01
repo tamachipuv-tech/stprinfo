@@ -1,8 +1,91 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><meta charset="UTF-8"><title>Discordコメント</title></head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord コメント</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+  }
+  form {
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background: #fff;
+  }
+  input, textarea, button {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  button {
+    background: #5865F2;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  #result {
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: center;
+  }
+</style>
+</head>
 <body>
-<!-- htmlB埋め込み -->
-<!-- Discord Webhook コメントフォーム -->
+
+<div>
+  <h3>💬 コメントを送る</h3>
+  <form id="commentForm">
+    <input type="text" id="name" placeholder="お名前（任意）">
+    <textarea id="comment" rows="4" placeholder="コメントを入力"></textarea>
+    <button type="submit">送信</button>
+  </form>
+  <p id="result"></p>
+</div>
+
+<script>
+document.getElementById("commentForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const webhookURL = "https://discord.com/api/webhooks/1432625981679468595/o8fg_ff4fKGDk2lnduR-gKfyR0-UglZlRWVXE0tw35NwztKBiP2NmF5HTA3gFxxSNW20"; // Discord Webhook URL
+  const name = document.getElementById("name").value || "匿名";
+  const comment = document.getElementById("comment").value;
+
+  if (!comment.trim()) {
+    document.getElementById("result").innerText = "コメントを入力してください。";
+    return;
+  }
+
+  const payload = {
+    content: `🗨️ **${name}さんのコメント:**\n${comment}`
+  };
+
+  fetch(webhookURL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if (res.ok) {
+      document.getElementById("result").innerText = "コメントを送信しました！✨";
+      document.getElementById("comment").value = "";
+    } else {
+      document.getElementById("result").innerText = "送信に失敗しました。";
+    }
+  })
+  .catch(() => {
+    document.getElementById("result").innerText = "通信エラーが発生しました。";
+  });
+});
+</script>
+
 </body>
 </html>
