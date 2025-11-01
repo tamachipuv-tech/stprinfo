@@ -5,36 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ライブ情報</title>
 <style>
-  body {
-    font-family: sans-serif;
-    padding: 20px;
-    background: #f9f9f9;
-    color: #222;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .card {
-    border: 1px solid #ccc;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  .card img {
-    max-width: 100%;
-    border-radius: 10px;
-    margin-bottom: 10px;
-  }
-  .card h2 {
-    margin: 5px 0;
-    color: #333;
-  }
-  .card p {
-    margin: 5px 0;
-  }
+  body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+  h1 { text-align: center; margin-bottom: 20px; }
+  .card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  .card img { max-width: 100%; border-radius: 8px; margin-bottom: 10px; }
+  .card h3 { margin: 5px 0; }
+  .card p { margin: 2px 0; color: #555; }
 </style>
 </head>
 <body>
@@ -43,45 +19,35 @@
 <div id="liveContainer">読み込み中...</div>
 
 <script>
-// GAS Web App URL（実際にデプロイしたURLに置き換える）
-const GAS_URL = "LIVE_GAS_WEB_APP_URL?action=get";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx07dhgt8oycRyoOlH1GIauKGMoFCq3sOaxTKp-opn0l461__OLlBL98EaYBAra-TXU/exec";
 
-// ライブ情報取得
-async function fetchLiveData() {
+async function fetchLives() {
   try {
-    const res = await fetch(GAS_URL);
+    const res = await fetch(`${GAS_URL}?action=get`);
     const data = await res.json();
     const container = document.getElementById('liveContainer');
     container.innerHTML = '';
-
-    if (data.length === 0) {
-      container.innerHTML = '<p>現在、ライブ情報はありません。</p>';
+    if(!data.length){
+      container.innerHTML = "<p>ライブ情報はまだありません。</p>";
       return;
     }
-
-    data.forEach(l => {
+    data.forEach(live => {
       const div = document.createElement('div');
       div.className = 'card';
       div.innerHTML = `
-        <img src="${l.url}" alt="${l.title}">
-        <h2>${l.title}</h2>
-        <p>アーティスト: ${l.place}</p>
-        <p>日時: ${l.date}</p>
-        <p>詳細URL: <a href="${l.url}" target="_blank">リンク</a></p>
+        <img src="${live.url}" alt="${live.title}">
+        <h3>${live.title}</h3>
+        <p>${live.place}</p>
+        <p>${live.date}</p>
       `;
       container.appendChild(div);
     });
-
-  } catch (err) {
-    document.getElementById('liveContainer').innerText = "ライブ情報の取得に失敗しました";
+  } catch(err){
     console.error(err);
+    document.getElementById('liveContainer').innerText = "ライブ情報の読み込みに失敗しました";
   }
 }
-
-// 初回取得
-fetchLiveData();
-// 10秒ごとに自動更新
-setInterval(fetchLiveData, 10000);
+fetchLives();
 </script>
 
 </body>
