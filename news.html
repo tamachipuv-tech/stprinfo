@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>お知らせ</title>
+</head>
+<body>
+<h1>お知らせ</h1>
+<!-- htmlA埋め込み -->
+<div id="noticeArea"></div>
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQN7Kij705mgcUhk_HRxpzpsja8TvA2DLRQSJpKukbBX0poCl9Dju8TNHrHNRtTUPOCFw9YtlhjhMTX/pub?gid=0&single=true&output=csv";
+async function fetchNotices(){
+const res = await fetch(CSV_URL);
+const text = await res.text();
+const lines = text.split('\n');
+const container = document.getElementById('noticeArea');
+container.innerHTML='';
+lines.slice(1).reverse().forEach(l => {
+const [date,title,content,memo] = l.split(',');
+container.innerHTML+=`<div><strong>${title}</strong><br>${date}<p>${content}</p><small>${memo}</small></div>`;
+});
+}
+fetchNotices();
+</script>
+</body>
+</html>
