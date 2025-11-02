@@ -4,6 +4,102 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STPR TOP</title>
+<!-- ▼▼▼ ナビゲーションバー ▼▼▼ -->
+<style>
+  body {
+    margin: 0;
+    padding-top: 60px; /* ヘッダー分の余白 */
+    font-family: sans-serif;
+  }
+
+  header {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    z-index: 999;
+  }
+
+  .logo {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  nav {
+    display: flex;
+    gap: 20px;
+  }
+
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  /* ハンバーガー */
+  .menu-btn {
+    display: none;
+    font-size: 26px;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* スマホ用メニュー */
+  @media (max-width: 700px) {
+    nav {
+      position: fixed;
+      top: 60px;
+      right: -100%;
+      width: 60%;
+      height: 100vh;
+      background: white;
+      flex-direction: column;
+      padding: 20px;
+      transition: 0.3s;
+      border-left: 1px solid #ddd;
+    }
+    nav a {
+      color: black;
+      font-size: 18px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    nav.active {
+      right: 0;
+    }
+    .menu-btn {
+      display: block;
+    }
+  }
+</style>
+
+<header>
+  <div class="logo">STPR info</div>
+
+  <div class="menu-btn" onclick="toggleMenu()">☰</div>
+
+  <nav id="menu">
+    <a href="index.html">ホーム</a>
+    <a href="liveinfo.html">ライブ情報</a>
+    <a href="news.html">お知らせ</a>
+    <a href="discon.html">Discord連携チャット</a>
+    <a href="adminrec.html">スタッフ募集</a>
+  </nav>
+</header>
+
+<script>
+  function toggleMenu() {
+    document.getElementById("menu").classList.toggle("active");
+  }
+</script>
+<!-- ▲▲▲ ナビゲーションバー ▲▲▲ -->
+
 <style>
   body, html {
     margin: 0;
